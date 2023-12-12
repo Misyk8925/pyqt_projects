@@ -16,38 +16,31 @@ class DlgMain(QDialog):
 
         self.db_creation()
 
-        self.cur.execute("SELECT german_word FROM words")
-        self.german_list = (self.cur.fetchall())
-
-        self.cur.execute("SELECT english_word FROM words")
-        self.english_list = self.cur.fetchall()
-        self.count = 0
+        self.german_list = self.creating_lists_of_words("german_word")
+        self.english_list = self.creating_lists_of_words("english_word")
 
         if len(self.german_list):
             self.init_main_window_ui()
         else:
-            self.db_creation()
-            aw_label = QLabel("Click below, if you want to add new word")
-            self.layout.addWidget(aw_label)
-            add_word = QPushButton("Add new word")
-            self.layout.addWidget(add_word)
-            add_word.clicked.connect(self.adding_new_word)
+            self.display_add_new_word_function()
 
             self.init_main_window_ui()
 
     def db_creation(self):
         with sq.connect("words_list.db") as self.con:
-
             self.cur = self.con.cursor()  # return an example of class Cursor
-
             self.cur.execute("""
             CREATE TABLE IF NOT EXISTS words 
             (
-            word_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            german_word TEXT,
-            english_word TEXT
+                word_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                german_word TEXT,
+                english_word TEXT
             )
             """)
+
+    def creating_lists_of_words(self, column):
+        self.cur.execute(f"SELECT {column} FROM words")
+        return [word[0] for word in self.cur.fetchall()]
 
     def adding_new_word(self):
         dialog = InputDialog()
@@ -59,7 +52,6 @@ class DlgMain(QDialog):
             self.cur.execute("INSERT INTO words (german_word, english_word) VALUES (?, ?)", user_input)
             self.con.commit()
 
-            self.count += 1
             self.german_list.append(str(user_input[0]))
             self.english_list.append(user_input[1])
 
@@ -67,10 +59,19 @@ class DlgMain(QDialog):
         else:
             print("Operation has been cancelled")
 
+    def display_add_new_word_function(self):
+        self.db_creation()
+
+        aw_label = QLabel("Click below, if you want to add new word")
+        self.layout.addWidget(aw_label)
+        add_word = QPushButton("Add new word")
+        self.layout.addWidget(add_word)
+        add_word.clicked.connect(self.adding_new_word)
+
     def init_main_window_ui(self):
         self.random_number = randint(0, len(self.german_list) - 1)
         print(self.german_list)
-        self.s = str(self.german_list[self.random_number])[2:-3]   # formatted word
+        self.s = self.german_list[self.random_number]   # formatted word
     
         self.german_word = QLabel("Word on german:", self)
         self.word = QLabel(self.s)
@@ -93,11 +94,7 @@ class DlgMain(QDialog):
         self.layout.addWidget(self.btn_restart)
         self.btn_restart.clicked.connect(self.restart)
 
-        aw_label = QLabel("Click below, if you want to add new word")
-        self.layout.addWidget(aw_label)
-        add_word = QPushButton("Add new word")
-        self.layout.addWidget(add_word)
-        add_word.clicked.connect(self.adding_new_word)
+        self.display_add_new_word_function()
 
         self.setLayout(self.layout)
 
@@ -106,7 +103,7 @@ class DlgMain(QDialog):
         print(answer)
         print(self.english_list[self.random_number][2:-3])
 
-        if answer == str(self.english_list[self.random_number])[2:-3]:
+        if answer == str(self.english_list[self.random_number]):
             self.result_label.setText("Correct")
 
         else:
@@ -114,7 +111,7 @@ class DlgMain(QDialog):
 
     def restart(self):
         self.random_number = randint(0, len(self.german_list) - 1)
-        self.s = str(self.german_list[self.random_number])[2:-3]  # formatted word
+        self.s = self.german_list[self.random_number]  # formatted word
         self.german_word.setText("Word on German:")
         self.word.setText(self.s)
         self.word_input.clear()
