@@ -13,6 +13,7 @@ class DlgMain(QDialog):
         self.setWindowTitle("Words training")
 
         self.layout = QVBoxLayout(self)
+        self.german_word = QLabel(" ", self)
 
         self.db_creation()
 
@@ -20,11 +21,11 @@ class DlgMain(QDialog):
         self.english_list = self.creating_lists_of_words("english_word")
 
         if len(self.german_list):
-            self.init_main_window_ui()
+            self.advanced_init_ui()
         else:
             self.display_add_new_word_function()
-
-            self.init_main_window_ui()
+            if len(self.german_list):
+                self.init_main_window_ui()
 
     def db_creation(self):
         with sq.connect("words_list.db") as self.con:
@@ -55,7 +56,8 @@ class DlgMain(QDialog):
             self.german_list.append(str(user_input[0]))
             self.english_list.append(user_input[1])
 
-            self.restart()
+            if len(self.german_list) == 1:
+                self.init_main_window_ui()
         else:
             print("Operation has been cancelled")
 
@@ -70,8 +72,11 @@ class DlgMain(QDialog):
 
     def init_main_window_ui(self):
         self.random_number = randint(0, len(self.german_list) - 1)
+
         print(self.german_list)
-        self.s = self.german_list[self.random_number]   # formatted word
+        print(self.english_list)
+
+        self.s = self.german_list[self.random_number]   # random word
     
         self.german_word = QLabel("Word on german:", self)
         self.word = QLabel(self.s)
@@ -94,9 +99,11 @@ class DlgMain(QDialog):
         self.layout.addWidget(self.btn_restart)
         self.btn_restart.clicked.connect(self.restart)
 
-        self.display_add_new_word_function()
-
         self.setLayout(self.layout)
+
+    def advanced_init_ui(self):
+        self.init_main_window_ui()
+        self.display_add_new_word_function()
 
     def get_result(self):
         answer = str(self.word_input.text())
