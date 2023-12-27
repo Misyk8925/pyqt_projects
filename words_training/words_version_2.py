@@ -79,10 +79,10 @@ class DlgMain(QDialog):
         print(self.german_list)
         print(self.english_list)
 
-        self.s = self.german_list[self.random_number]  # random word
+        self.random_selected_word = self.german_list[self.random_number]  # random word
 
         self.german_word = QLabel("Word on german:", self)
-        self.word = QLabel(self.s)
+        self.word = QLabel(self.random_selected_word)
 
         english_word_label = QLabel("Word on english: ", self)
         self.word_input = QLineEdit(self)
