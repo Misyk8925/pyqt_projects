@@ -145,33 +145,6 @@ class DlgMain(QDialog):
 
         self.layout.addWidget(self.delete_words_list)
 
-    """def apply_changes(self):
-        new_german = self.new_german_word_input.text()
-        new_english = self.new_english_word_input.text()
-
-        # Use placeholders to avoid SQL injection
-        edit_grmn = "UPDATE words SET german_word = ? WHERE german_word = ?"
-        edit_engl = "UPDATE words SET english_word = ? WHERE english_word = ?"
-
-        # Extracting the word from the result
-        old_word = str(self.result).split(' ')[0]
-
-        try:
-            # Open a new connection within the 'with' statement
-            with sq.connect("words_list.db") as con:
-                cur = con.cursor()
-                cur.execute(edit_grmn, (new_german, old_word))
-                cur.execute(edit_engl, (new_english, old_word))
-                con.commit()
-        except sq.Error as e:
-            print(f"Error applying changes: {e}")
-        finally:
-            self.cur.close()
-            self.con.close()
-
-        # Close the dialog after applying changes
-        self.accept()"""
-
     def fetch_data_from_database(self):
         try:
             with sq.connect("words_list.db") as connection:
@@ -193,9 +166,9 @@ class DlgMain(QDialog):
         user_corrections_input = self.corrections_dialog.get_corrections_user_input()
 
         old_word = str(self.selected_item).split('   ')
-        print(old_word)
+        """print(old_word)
         print((user_corrections_input[0], old_word[0]))
-        print((user_corrections_input[1], old_word[2]))
+        print((user_corrections_input[1], old_word[2]))"""
         self.cur.execute("UPDATE words SET german_word = ? WHERE german_word = ?",
                          (user_corrections_input[0], old_word[0]))
 
@@ -256,6 +229,9 @@ class DlgMain(QDialog):
 
 
     def restart(self):
+        self.german_list = self.creating_lists_of_words("german_word")  # import from database word into lists
+        self.english_list = self.creating_lists_of_words("english_word")
+
         self.random_number = randint(0, len(self.german_list) - 1)
         self.s = self.german_list[self.random_number]  # formatted word
         self.german_word.setText("Word on German:")
@@ -267,8 +243,7 @@ class DlgMain(QDialog):
         self.fetch_data_from_database()
 
         for word_pair in self.word_pairs:
-            self.words_list.addItem(f"{str(word_pair[0])[2:-3]} - {str(word_pair[1])[2:-3]}")  # formatted word
-
+            self.words_list.addItem(f"{str(word_pair[0])[2:-3]}   -   {str(word_pair[1])[2:-3]}")  # formatted word
 
         self.delete_words_list.clear()
         self.fetch_data_from_database()
