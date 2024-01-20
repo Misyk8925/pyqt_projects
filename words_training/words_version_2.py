@@ -1,7 +1,10 @@
 import sys
+
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import *
 from random import *
 import sqlite3 as sq
+import pandas as pd
 
 
 class DlgMain(QDialog):
@@ -43,6 +46,14 @@ class DlgMain(QDialog):
             """)
 
     def creating_lists_of_words(self, column):      # adding new words to lists
+        """it takes new word from a databse column (german_word or english word) and rerurns it 
+
+        Args:
+            column (str): german_word or english_word
+
+        Returns:
+            list: list of german or english words
+        """
         self.cur.execute(f"SELECT {column} FROM words")
         return [word[0] for word in self.cur.fetchall()]
 
@@ -69,13 +80,45 @@ class DlgMain(QDialog):
 
     def display_add_new_word_function(self):
         self.db_creation()
+
         self.setStyleSheet("background-color: rgb(28, 17, 51);")
+
         aw_label = QLabel("Click below, if you want to add new word")
         self.layout.addWidget(aw_label)
+
         add_word = QPushButton("Add new word")
         add_word.setStyleSheet("background-color: rgb(75, 11, 144);")
         self.layout.addWidget(add_word)
         add_word.clicked.connect(self.adding_new_word)
+        self.btn_add_from_excel = QPushButton("Add new words from excel")
+        self.btn_add_from_excel.setStyleSheet("background-color: rgb(75, 11, 144);")
+        self.btn_add_from_excel.clicked.connect(self.add_from_excel)
+        self.layout.addWidget(self.btn_add_from_excel)
+
+    def add_from_excel(self):
+        try:
+            # Specify the path to your Excel file
+            excel_file_path = 'words_sheet.xlsx'
+
+            df = pd.read_excel(excel_file_path, names=['german_word', 'english_word'])
+
+            # Connect to SQLite database (adjust the database name)
+            db_path = 'words_list.db'
+            conn = sq.connect(db_path)
+            cursor = conn.cursor()
+
+            # Create the table if it doesn't exist
+
+            conn = sq.connect("words_list.db")
+
+            df.to_sql('words', conn, index=False, if_exists='append')
+            # Commit the changes and close the database connection
+            self.restart()
+
+            conn.commit()
+            conn.close()
+        except:
+            self.show_delete_msg("There is not such an excel file", "you cannot add words from it", "excel file error")      # words_sheet.xlsx
 
     def init_main_window_ui(self):
         self.random_number = randint(0, len(self.german_list) - 1)
@@ -198,38 +241,52 @@ class DlgMain(QDialog):
             self.result_label.setStyleSheet("color: red;")
             self.result_label.setText("Incorrect")
 
+    def show_delete_msg(self, text, detailed_text, title):
+        delete_msg = QMessageBox()
+        delete_msg.setText(text)
+        delete_msg.setDetailedText(detailed_text)
+        delete_msg.setIcon(QMessageBox.Icon.Information)
+        delete_msg.setWindowTitle(title)
+        delete_msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        delete_msg.exec()
+
+
     def restart(self):
-        self.german_list = DlgMain.creating_lists_of_words(self,"german_word")  # import from database word into lists
-        self.english_list = DlgMain.creating_lists_of_words(self, "english_word")
+        try:
+            self.german_list = DlgMain.creating_lists_of_words(self,"german_word")  # import from database word into lists
+            self.english_list = DlgMain.creating_lists_of_words(self, "english_word")
 
-        if len(self.german_list) > 1:
-            bol = True
-            while bol:
-                self.random_number_new = randint(0, len(self.german_list) - 1)
-                if self.random_number_new != self.random_number:
-                    bol = False
-            self.random_selected_word = self.german_list[self.random_number_new]  # formatted word
-            self.random_number = self.random_number_new
-        else:
-            self.random_selected_word = self.german_list[0]
+            if len(self.german_list) > 1:
+                bol = True
+                while bol:
+                    self.random_number_new = randint(0, len(self.german_list) - 1)
+                    if self.random_number_new != self.random_number:
+                        bol = False
+                self.random_selected_word = self.german_list[self.random_number_new]  # formatted word
+                self.random_number = self.random_number_new
+            else:
+                self.random_selected_word = self.german_list[0]
 
-        self.german_word.setText("Word on German:")
-        self.word.setText(self.random_selected_word)
-        self.word_input.clear()
-        self.result_label.clear()
+            self.german_word.setText("Word on German:")
+            self.word.setText(self.random_selected_word)
+            self.word_input.clear()
+            self.result_label.clear()
 
-        self.words_list.clear()
-        self.fetch_data_from_database()
+            self.words_list.clear()
+            self.fetch_data_from_database()
 
-        for word_pair in self.word_pairs:
-            self.words_list.addItem(f"{str(word_pair[0])[2:-3]}   -   {str(word_pair[1])[2:-3]}")  # formatted word
+            for word_pair in self.word_pairs:
+                self.words_list.addItem(f"{str(word_pair[0])[2:-3]}   -   {str(word_pair[1])[2:-3]}")  # formatted word
 
-        self.delete_words_list.clear()
-        self.fetch_data_from_database()
+            self.delete_words_list.clear()
+            self.fetch_data_from_database()
 
-        for word_pair in self.word_pairs:
-            self.delete_words_list.addItem(f"{str(word_pair[0])[2:-3]}   -   {str(word_pair[1])[2:-3]}")
+            for word_pair in self.word_pairs:
+                self.delete_words_list.addItem(f"{str(word_pair[0])[2:-3]}   -   {str(word_pair[1])[2:-3]}")
 
+        except:
+            self.show_delete_msg("Database has been changed! Restart the app!", "You need to restart the programme", "Changes in Database")
+            self.close()
 
 class InputDialog(QDialog):
     def __init__(self):
@@ -341,6 +398,7 @@ class MoreOptionsDialog(QDialog):
         self.init_output_word_list()
 
         self.btn_open_editor = QPushButton("Edit this word pair")
+        self.btn_open_editor.setStyleSheet("background-color: rgb(75, 11, 144);")
         self.btn_open_editor.clicked.connect(self.show_editor_window)
 
         self.more_options_layout.addWidget(self.btn_open_editor)
@@ -348,8 +406,24 @@ class MoreOptionsDialog(QDialog):
         self.init_deleting_word_list()
 
         self.btn_open_delete_window = QPushButton("Delete this word pair")
+        self.btn_open_delete_window.setStyleSheet("background-color: rgb(75, 11, 144);")
         self.btn_open_delete_window.clicked.connect(self.delete_word_pair)
         self.more_options_layout.addWidget(self.btn_open_delete_window)
+
+        self.search_word_field = QLineEdit(self)
+        self.search_word_field.setStyleSheet("background-color: rgb(75, 11, 144);")
+        self.all_word_list = QListWidget(self)
+        #self.all_word_list.setStyleSheet("background-color: rgb(75, 11, 144);")
+
+        self.more_options_layout.addWidget(self.search_word_field)
+        self.more_options_layout.addWidget(self.all_word_list)
+
+        self.search_word_field.textChanged.connect(self.show_search_word_list)
+
+        self.btn_add_from_excel = QPushButton("Add new words from excel")
+        self.btn_add_from_excel.setStyleSheet("background-color: rgb(75, 11, 144);")
+        self.btn_add_from_excel.clicked.connect(self.add_from_excel)
+        self.more_options_layout.addWidget(self.btn_add_from_excel)
 
         # Create a QDialogButtonBox widget containing "OK" and "Cancel" buttons.
         buttons = QDialogButtonBox(
@@ -368,6 +442,8 @@ class MoreOptionsDialog(QDialog):
 
         self.german_list = self.creating_lists_of_words("german_word")  # import from database word into lists
         self.english_list = self.creating_lists_of_words("english_word")
+
+        self.setStyleSheet("background-color: rgb(28, 17, 51);")
 
         self.setLayout(self.more_options_layout)
 
@@ -397,6 +473,7 @@ class MoreOptionsDialog(QDialog):
         self.more_options_layout.addWidget(self.edit_word_label)
 
         self.words_list = QComboBox(self)
+        self.words_list.setStyleSheet("background-color: rgb(75, 11, 144);")
         self.fetch_data_from_database()
 
         for word_pair in self.word_pairs:
@@ -409,6 +486,7 @@ class MoreOptionsDialog(QDialog):
         self.more_options_layout.addWidget(self.delete_word_label)
 
         self.delete_words_list = QComboBox(self)
+        self.delete_words_list.setStyleSheet("background-color: rgb(75, 11, 144);")
         self.fetch_data_from_database()
         for word_pair in self.word_pairs:
             self.delete_words_list.addItem(f"{str(word_pair[0])[2:-3]}   -   {str(word_pair[1])[2:-3]}")
@@ -446,30 +524,73 @@ class MoreOptionsDialog(QDialog):
         self.con.commit()
 
     def delete_word_pair(self):
-        delete_selected_item = self.delete_words_list.currentText()
-        selected_word_pair = str(delete_selected_item).split("   ")
+        try:
+            delete_selected_item = self.delete_words_list.currentText()
+            selected_word_pair = str(delete_selected_item).split("   ")
 
-        # Use a QMessageBox for confirmation
-        reply = QMessageBox.question(self, 'Warning',
-                                     f"Do you really want to delete the word pair:  {selected_word_pair[0]} - {selected_word_pair[2]}",
-                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                                     QMessageBox.StandardButton.No)
+            # Use a QMessageBox for confirmation
+            reply = QMessageBox.question(self, 'Warning',
+                                         f"Do you really want to delete the word pair:  {selected_word_pair[0]} - {selected_word_pair[2]}",
+                                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                         QMessageBox.StandardButton.No)
 
-        if reply == QMessageBox.StandardButton.Yes:
-            self.cur.execute("DELETE FROM words WHERE german_word = ? AND english_word = ?",
-                             (selected_word_pair[0], selected_word_pair[2]))
+            if reply == QMessageBox.StandardButton.Yes:
+                self.cur.execute("DELETE FROM words WHERE german_word = ? AND english_word = ?",
+                                 (selected_word_pair[0], selected_word_pair[2]))
 
-            self.con.commit()
-            QMessageBox.information(self, "Title", "You have just deleted the selected word pair")
-            DlgMain.restart(self)
-        else:
-            QMessageBox.critical(self, "Canceled", "User clicked CANCEL")
+                self.con.commit()
+                QMessageBox.information(self, "Title", "You have just deleted the selected word pair")
+                DlgMain.restart(self)
+            else:
+                QMessageBox.critical(self, "Canceled", "User clicked CANCEL")
+        except:
+            DlgMain.show_delete_msg(self, "Database has been changed! Restart the app!", "You need to restart the programme", "Changes in Database")
+            self.close()
+
+    def show_search_word_list(self, text):
+        matching_words_german = [word for word in self.german_list if text.lower() in word.lower()]
+        matching_words_english = [word for word in self.english_list if text.lower() in word.lower()]
+
+        self.all_word_list.clear()
+
+        for word in matching_words_german:
+            item = QListWidgetItem(word)
+            item.setForeground(QColor("Light blue"))
+            self.all_word_list.addItem(item)
+
+        for word in matching_words_english:
+            item = QListWidgetItem(word)
+            item.setForeground(QColor("Light yellow"))
+            self.all_word_list.addItem(item)
+
+    def add_from_excel(self):
+
+        # Specify the path to your Excel file
+        excel_file_path = 'words_sheet.xlsx'
+
+        df = pd.read_excel(excel_file_path, names=['german_word', 'english_word'])
+
+        # Connect to SQLite database (adjust the database name)
+        db_path = 'words_list.db'
+        conn = sq.connect(db_path)
+        cursor = conn.cursor()
+
+        # Create the table if it doesn't exist
+
+        conn = sq.connect("words_list.db")
+
+        df.to_sql('words', conn, index=False, if_exists='append')
+        # Commit the changes and close the database connection
+        DlgMain.restart(self)
+        conn.commit()
+        conn.close()
 
     def lists_returning(self):
         return [self.words_list, self.delete_words_list]
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyleSheet("QLabel, QLineEdit, QPushButton, QListWidget, QComboBox {color: white; }")
     dlgMain = DlgMain()
     dlgMain.show()
     sys.exit(app.exec())
