@@ -118,7 +118,7 @@ class DlgMain(QDialog):
             conn.commit()
             conn.close()
         except:
-            self.show_delete_msg("There is not such an excel file", "you cannot add words from it", "excel file error")      # words_sheet.xlsx
+            self.show_msg("There is not such an excel file", "you cannot add words from it", "excel file error")      # words_sheet.xlsx
 
     def init_main_window_ui(self):
         self.random_number = randint(0, len(self.german_list) - 1)
@@ -141,6 +141,11 @@ class DlgMain(QDialog):
         btn_get_res.setStyleSheet("background-color: rgb(75, 11, 144);")
         self.layout.addWidget(btn_get_res)
         btn_get_res.clicked.connect(self.get_result)
+
+        self.btn_show_correct_answer = QPushButton("Show correct answer")
+        self.btn_show_correct_answer.setStyleSheet("background-color: rgb(75, 11, 144);")
+        self.layout.addWidget(self.btn_show_correct_answer)
+        self.btn_show_correct_answer.clicked.connect(self.show_correct_answer)
 
         self.btn_restart = QPushButton("Next word")
         self.btn_restart.setStyleSheet("background-color: rgb(75, 11, 144);")
@@ -172,6 +177,11 @@ class DlgMain(QDialog):
         self.setStyleSheet("background-color: rgb(28, 17, 51);")
 
         self.setLayout(self.layout)
+
+    def show_correct_answer(self):
+        w = str(self.english_list[self.random_number])
+        self.show_msg(w, "It was a correct word form", "Correct word")
+        self.restart()
 
     def advanced_init_ui(self):
         self.init_main_window_ui()
@@ -227,7 +237,6 @@ class DlgMain(QDialog):
         except sq.Error as e:
             print(f"Database error: {e}")
 
-
     def get_result(self):
         answer = str(self.word_input.text())
         print(answer)
@@ -241,7 +250,7 @@ class DlgMain(QDialog):
             self.result_label.setStyleSheet("color: red;")
             self.result_label.setText("Incorrect")
 
-    def show_delete_msg(self, text, detailed_text, title):
+    def show_msg(self, text, detailed_text, title):
         delete_msg = QMessageBox()
         delete_msg.setText(text)
         delete_msg.setDetailedText(detailed_text)
@@ -249,7 +258,6 @@ class DlgMain(QDialog):
         delete_msg.setWindowTitle(title)
         delete_msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         delete_msg.exec()
-
 
     def restart(self):
         try:
@@ -285,7 +293,7 @@ class DlgMain(QDialog):
                 self.delete_words_list.addItem(f"{str(word_pair[0])[2:-3]}   -   {str(word_pair[1])[2:-3]}")
 
         except:
-            self.show_delete_msg("Database has been changed! Restart the app!", "You need to restart the programme", "Changes in Database")
+            self.show_msg("Database has been changed! Restart the app!", "You need to restart the programme", "Changes in Database")
             self.close()
 
 class InputDialog(QDialog):
@@ -544,7 +552,7 @@ class MoreOptionsDialog(QDialog):
             else:
                 QMessageBox.critical(self, "Canceled", "User clicked CANCEL")
         except:
-            DlgMain.show_delete_msg(self, "Database has been changed! Restart the app!", "You need to restart the programme", "Changes in Database")
+            DlgMain.show_msg(self, "Database has been changed! Restart the app!", "You need to restart the programme", "Changes in Database")
             self.close()
 
     def show_search_word_list(self, text):
