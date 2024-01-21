@@ -257,6 +257,10 @@ class DlgMain(QDialog):
         delete_msg.setIcon(QMessageBox.Icon.Information)
         delete_msg.setWindowTitle(title)
         delete_msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        # Set the background color using a stylesheet
+        #delete_msg.setStyleSheet("QMessageBox { background-color: blue; }")
+        delete_msg.setStyleSheet("QMessageBox { color: black; }")
+        delete_msg.setStyleSheet("color: black;")
         delete_msg.exec()
 
     def restart(self):
@@ -598,7 +602,10 @@ class MoreOptionsDialog(QDialog):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setStyleSheet("QLabel, QLineEdit, QPushButton, QListWidget, QComboBox {color: white; }")
+    app.setStyleSheet("""
+                        QLabel, QLineEdit, QPushButton, QListWidget, QComboBox {color: white; }
+                        QMessageBox { background-color: purple; color: black; }
+    """)
     dlgMain = DlgMain()
     dlgMain.show()
     sys.exit(app.exec())
