@@ -604,7 +604,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyleSheet("""
                         QLabel, QLineEdit, QPushButton, QListWidget, QComboBox {color: white; }
-                        QMessageBox { background-color: purple; color: black; }
+                        QMessageBox { background-color: lightblue; color: black; }
     """)
     dlgMain = DlgMain()
     dlgMain.show()
