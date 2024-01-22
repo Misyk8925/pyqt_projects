@@ -66,9 +66,16 @@ class DlgMain(QDialog):
 
             self.cur.execute("INSERT INTO words (german_word, english_word) VALUES (?, ?)", user_input)
             self.con.commit()       # update the database
+            add_german = str(user_input[0])
+            add_german += " "
+            print(add_german)
+            self.german_list.append(add_german)
 
-            self.german_list.append(str(user_input[0]))
-            self.english_list.append(user_input[1])
+            add_english = str(user_input[1])
+            add_english += " "
+            print(add_english)
+
+            self.english_list.append(add_english)
 
             if len(self.german_list) == 1:
                 self.init_main_window_ui()
@@ -174,7 +181,7 @@ class DlgMain(QDialog):
         for word_pair in self.word_pairs:
             self.delete_words_list.addItem(f"{str(word_pair[0])[2:-3]}   -   {str(word_pair[1])[2:-3]}")
 
-        self.setStyleSheet("background-color: rgb(28, 17, 51);")
+        self.setStyleSheet("background-color: rgb(81, 0, 135, 255);")
 
         self.setLayout(self.layout)
 
@@ -239,10 +246,13 @@ class DlgMain(QDialog):
 
     def get_result(self):
         answer = str(self.word_input.text())
-        print(answer)
-        print(self.english_list[self.random_number][2:-3])
+        answer += " "
 
-        if answer == str(self.english_list[self.random_number]):
+        res = str(self.english_list[self.random_number])
+
+        res += " "
+
+        if answer == res[:-1]:
             self.result_label.setStyleSheet("color: lightgreen;")
             self.result_label.setText("Correct")
 
