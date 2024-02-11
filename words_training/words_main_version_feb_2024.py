@@ -497,7 +497,6 @@ class InputDialog(QDialog):
         layout.addWidget(buttons)
 
         self.setLayout(layout)
-
         self.setWindowTitle('Dialog window')
 
     def get_user_input(self):
