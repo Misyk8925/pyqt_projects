@@ -93,7 +93,10 @@ class DlgStart(QDialog):
         self.current_db_index = 0
 
         self.db_list = self.load_db_list()  # Initialize db_list here
-        self.db_manager = MyDatabaseManager(self.db_list[self.current_db_index])
+        try:
+            self.db_manager = MyDatabaseManager(self.db_list[self.current_db_index])
+        except IndexError:
+            self.load_db_list()
 
         self.layout = QVBoxLayout(self)
         self.display_add_new_database_function()
@@ -464,6 +467,7 @@ class InputDialog(QDialog):
         layout = QVBoxLayout()
         warning = QLabel("Be careful not to make a mistake!", self)
         layout.addWidget(warning)
+        self.setstylesheet("background-color: rgb(81, 0, 135, 255);")
 
         german_word_label = QLabel("Word on german: ", self)
         layout.addWidget(german_word_label)
