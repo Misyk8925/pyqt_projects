@@ -209,7 +209,7 @@ class DlgMain(QDialog):
                 self.init_main_window_ui()  # start main window
 
     def creating_lists_of_words(self, column):  # adding new words to lists
-        """it takes new word from a databse column (german_word or english word) and rerurns it 
+        """it takes new word from a database column (german_word or english word) and rerurns list of words in this column
 
         Args:
             column (str): german_word or english_word
@@ -467,7 +467,6 @@ class InputDialog(QDialog):
         layout = QVBoxLayout()
         warning = QLabel("Be careful not to make a mistake!", self)
         layout.addWidget(warning)
-        self.setstylesheet("background-color: rgb(81, 0, 135, 255);")
 
         german_word_label = QLabel("Word on german: ", self)
         layout.addWidget(german_word_label)
@@ -495,9 +494,11 @@ class InputDialog(QDialog):
         buttons.rejected.connect(self.reject)
 
         layout.addWidget(buttons)
-
-        self.setLayout(layout)
         self.setWindowTitle('Dialog window')
+
+        self.setStyleSheet("background-color: darkblue;")
+        self.setLayout(layout)
+
 
     def get_user_input(self):
         self.input_list = [self.input_field_german.text(), self.input_field_english.text()]
