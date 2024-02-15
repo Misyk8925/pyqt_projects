@@ -249,11 +249,9 @@ class DlgMain(QDialog):
             self.cur.execute("INSERT INTO words (german_word, english_word) VALUES (?, ?)", user_input)
             self.con.commit()  # update the database
             add_german = str(user_input[0])
-            add_german += " "
             self.german_list.append(add_german)
 
             add_english = str(user_input[1])
-            add_english += " "
 
             self.english_list.append(add_english)
 
